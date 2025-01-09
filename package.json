@@ -1,0 +1,20 @@
+{
+  "name": "email-saas",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:client": "yarn workspace client dev",
+    "dev:server": "yarn workspace server dev",
+    "dev": "concurrently \"yarn dev:client\" \"yarn dev:server\"",
+    "build": "yarn workspace client build && yarn workspace server build",
+    "start": "yarn workspace server start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "typescript": "^5.1.6"
+  }
+} 
