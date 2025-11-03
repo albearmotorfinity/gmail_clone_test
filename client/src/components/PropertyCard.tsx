@@ -22,6 +22,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     isStudent,
     relevanceScore,
     matchDetails,
+    roomDetails,
   } = property;
 
   const getScoreColor = (score: number): string => {
@@ -71,6 +72,26 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           <span className="detail-separator">•</span>
           <span className="detail-item">{propertyType}</span>
         </div>
+
+        {roomDetails && (roomDetails.doubleRooms > 0 || roomDetails.ensuiteRooms > 0 || roomDetails.similarSizedRooms || roomDetails.hasMasterBedroom) && (
+          <div className="room-details">
+            {roomDetails.doubleRooms > 0 && (
+              <span className="room-badge">{roomDetails.doubleRooms} Double</span>
+            )}
+            {roomDetails.singleRooms > 0 && (
+              <span className="room-badge">{roomDetails.singleRooms} Single</span>
+            )}
+            {roomDetails.ensuiteRooms > 0 && (
+              <span className="room-badge ensuite">{roomDetails.ensuiteRooms} Ensuite</span>
+            )}
+            {roomDetails.hasMasterBedroom && (
+              <span className="room-badge master">Master</span>
+            )}
+            {roomDetails.similarSizedRooms && (
+              <span className="room-badge similar">Similar Sized</span>
+            )}
+          </div>
+        )}
 
         <p className="property-description">
           {description.substring(0, 150)}

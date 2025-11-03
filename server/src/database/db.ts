@@ -27,7 +27,8 @@ db.exec(`
     furnishedStatus TEXT,
     availableFrom TEXT,
     addedOn TEXT,
-    scrapedAt TEXT NOT NULL
+    scrapedAt TEXT NOT NULL,
+    roomDetails TEXT
   );
 
   CREATE INDEX IF NOT EXISTS idx_price ON properties(price);
@@ -42,11 +43,11 @@ export const insertProperty = (property: Property) => {
     INSERT OR REPLACE INTO properties (
       id, title, price, priceQualifier, bedrooms, bathrooms, propertyType,
       address, postcode, latitude, longitude, hasGarden, description, images,
-      url, isStudent, furnishedStatus, availableFrom, addedOn, scrapedAt
+      url, isStudent, furnishedStatus, availableFrom, addedOn, scrapedAt, roomDetails
     ) VALUES (
       @id, @title, @price, @priceQualifier, @bedrooms, @bathrooms, @propertyType,
       @address, @postcode, @latitude, @longitude, @hasGarden, @description, @images,
-      @url, @isStudent, @furnishedStatus, @availableFrom, @addedOn, @scrapedAt
+      @url, @isStudent, @furnishedStatus, @availableFrom, @addedOn, @scrapedAt, @roomDetails
     )
   `);
 
@@ -55,6 +56,7 @@ export const insertProperty = (property: Property) => {
     hasGarden: property.hasGarden ? 1 : 0,
     isStudent: property.isStudent ? 1 : 0,
     images: JSON.stringify(property.images),
+    roomDetails: property.roomDetails ? JSON.stringify(property.roomDetails) : null,
     scrapedAt: property.scrapedAt.toISOString(),
   });
 };
@@ -68,6 +70,7 @@ export const getAllProperties = (): Property[] => {
     hasGarden: row.hasGarden === 1,
     isStudent: row.isStudent === 1,
     images: JSON.parse(row.images || '[]'),
+    roomDetails: row.roomDetails ? JSON.parse(row.roomDetails) : undefined,
     scrapedAt: new Date(row.scrapedAt),
   }));
 };
@@ -83,6 +86,7 @@ export const getPropertyById = (id: string): Property | undefined => {
     hasGarden: row.hasGarden === 1,
     isStudent: row.isStudent === 1,
     images: JSON.parse(row.images || '[]'),
+    roomDetails: row.roomDetails ? JSON.parse(row.roomDetails) : undefined,
     scrapedAt: new Date(row.scrapedAt),
   };
 };

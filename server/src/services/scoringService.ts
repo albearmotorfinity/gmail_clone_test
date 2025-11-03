@@ -119,30 +119,103 @@ export class ScoringService {
         }
       }
 
-      // Score: Location Proximity
-      if (filters.location && property.latitude && property.longitude) {
-        const weight = filters.location.weight;
-        maxPossibleScore += weight;
+      // Score: Multiple Location Proximities
+      if (filters.locations && filters.locations.length > 0 && property.latitude && property.longitude) {
+        filters.locations.forEach((locationFilter, index) => {
+          const weight = locationFilter.weight;
+          maxPossibleScore += weight;
 
-        const distance = this.calculateDistance(
-          filters.location.lat,
-          filters.location.lng,
-          property.latitude,
-          property.longitude
-        );
+          const distance = this.calculateDistance(
+            locationFilter.lat,
+            locationFilter.lng,
+            property.latitude,
+            property.longitude
+          );
 
-        if (distance <= filters.location.maxDistance) {
-          // Score based on proximity (closer = better)
-          const proximityRatio = 1 - (distance / filters.location.maxDistance);
-          const score = weight * (0.5 + proximityRatio * 0.5); // Min 50% if within range
-          totalScore += score;
-          matchDetails.location = { matched: true, contribution: score, distance };
-        } else {
-          // Partial credit if reasonably close
-          const excessRatio = Math.min((distance - filters.location.maxDistance) / filters.location.maxDistance, 1);
-          const score = weight * (0.3 * (1 - excessRatio));
-          totalScore += score;
-          matchDetails.location = { matched: false, contribution: score, distance };
+          const locationKey = `location_${locationFilter.name || index}`;
+
+          if (distance <= locationFilter.maxDistance) {
+            // Score based on proximity (closer = better)
+            const proximityRatio = 1 - (distance / locationFilter.maxDistance);
+            const score = weight * (0.5 + proximityRatio * 0.5); // Min 50% if within range
+            totalScore += score;
+            matchDetails[locationKey] = { matched: true, contribution: score, distance: distance.toFixed(2) + 'km' };
+          } else {
+            // Partial credit if reasonably close
+            const excessRatio = Math.min((distance - locationFilter.maxDistance) / locationFilter.maxDistance, 1);
+            const score = weight * (0.3 * (1 - excessRatio));
+            totalScore += score;
+            matchDetails[locationKey] = { matched: false, contribution: score, distance: distance.toFixed(2) + 'km' };
+          }
+        });
+      }
+
+      // Score: Room Criteria
+      if (filters.rooms && property.roomDetails) {
+        const weight = filters.rooms.weight;
+        const criteria = filters.rooms.criteria;
+        let roomScore = 0;
+        let roomCriteriaCount = 0;
+        const roomMatches: any = {};
+
+        // Check minimum double rooms
+        if (criteria.minDoubleRooms !== undefined) {
+          roomCriteriaCount++;
+          if (property.roomDetails.doubleRooms >= criteria.minDoubleRooms) {
+            roomScore += 1;
+            roomMatches.doubleRooms = true;
+          } else {
+            const ratio = property.roomDetails.doubleRooms / criteria.minDoubleRooms;
+            roomScore += ratio * 0.5; // Partial credit
+            roomMatches.doubleRooms = false;
+          }
+        }
+
+        // Check minimum ensuite rooms
+        if (criteria.minEnsuiteRooms !== undefined) {
+          roomCriteriaCount++;
+          if (property.roomDetails.ensuiteRooms >= criteria.minEnsuiteRooms) {
+            roomScore += 1;
+            roomMatches.ensuiteRooms = true;
+          } else {
+            const ratio = property.roomDetails.ensuiteRooms / criteria.minEnsuiteRooms;
+            roomScore += ratio * 0.5; // Partial credit
+            roomMatches.ensuiteRooms = false;
+          }
+        }
+
+        // Check similarly sized rooms
+        if (criteria.similarSizedRooms !== undefined) {
+          roomCriteriaCount++;
+          if (property.roomDetails.similarSizedRooms === criteria.similarSizedRooms) {
+            roomScore += 1;
+            roomMatches.similarSizedRooms = true;
+          } else {
+            roomMatches.similarSizedRooms = false;
+          }
+        }
+
+        // Check master bedroom
+        if (criteria.hasMasterBedroom !== undefined) {
+          roomCriteriaCount++;
+          if (property.roomDetails.hasMasterBedroom === criteria.hasMasterBedroom) {
+            roomScore += 1;
+            roomMatches.hasMasterBedroom = true;
+          } else {
+            roomMatches.hasMasterBedroom = false;
+          }
+        }
+
+        // Calculate final room score
+        if (roomCriteriaCount > 0) {
+          maxPossibleScore += weight;
+          const normalizedRoomScore = (roomScore / roomCriteriaCount) * weight;
+          totalScore += normalizedRoomScore;
+          matchDetails.rooms = {
+            matched: roomScore === roomCriteriaCount,
+            contribution: normalizedRoomScore,
+            details: roomMatches,
+          };
         }
       }
 

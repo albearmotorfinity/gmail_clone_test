@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { Property } from '../types/property';
+import { Property, RoomDetails } from '../types/property';
 
 /**
  * Scrapes property listings from Rightmove search results
@@ -69,6 +69,9 @@ export class RightmoveService {
           // Detect garden
           const hasGarden = this.detectGarden(description, title);
 
+          // Detect room details
+          const roomDetails = this.detectRoomDetails(description, title, bedrooms);
+
           // Extract date added
           const addedOn = $card.find('.propertyCard-branchSummary-addedOrReduced').text().trim();
 
@@ -88,6 +91,7 @@ export class RightmoveService {
             isStudent,
             addedOn,
             scrapedAt: new Date(),
+            roomDetails,
           };
 
           properties.push(property);
@@ -160,6 +164,66 @@ export class RightmoveService {
     const gardenKeywords = ['garden', 'yard', 'patio', 'outdoor space', 'terrace', 'balcony'];
     const combinedText = `${title} ${description}`.toLowerCase();
     return gardenKeywords.some(keyword => combinedText.includes(keyword));
+  }
+
+  private detectRoomDetails(description: string, title: string, totalBedrooms: number): RoomDetails {
+    const combinedText = `${title} ${description}`.toLowerCase();
+
+    // Detect double bedrooms
+    let doubleRooms = 0;
+    const doubleMatch = combinedText.match(/(\d+)\s*double\s*bedroom/i);
+    if (doubleMatch) {
+      doubleRooms = parseInt(doubleMatch[1], 10);
+    } else if (combinedText.includes('double bedroom') || combinedText.includes('double bed')) {
+      doubleRooms = 1;
+    } else if (combinedText.includes('all double') || combinedText.includes('both double')) {
+      doubleRooms = totalBedrooms;
+    }
+
+    // Detect single bedrooms
+    let singleRooms = 0;
+    const singleMatch = combinedText.match(/(\d+)\s*single\s*bedroom/i);
+    if (singleMatch) {
+      singleRooms = parseInt(singleMatch[1], 10);
+    } else if (combinedText.includes('single bedroom') || combinedText.includes('single bed')) {
+      singleRooms = 1;
+    }
+
+    // If we know doubles/singles, calculate the other
+    if (doubleRooms > 0 && singleRooms === 0 && doubleRooms < totalBedrooms) {
+      singleRooms = totalBedrooms - doubleRooms;
+    } else if (singleRooms > 0 && doubleRooms === 0 && singleRooms < totalBedrooms) {
+      doubleRooms = totalBedrooms - singleRooms;
+    }
+
+    // Detect ensuite rooms
+    let ensuiteRooms = 0;
+    const ensuiteMatch = combinedText.match(/(\d+)\s*en-?suite/i);
+    if (ensuiteMatch) {
+      ensuiteRooms = parseInt(ensuiteMatch[1], 10);
+    } else if (combinedText.includes('ensuite') || combinedText.includes('en-suite') || combinedText.includes('en suite')) {
+      ensuiteRooms = 1;
+    }
+
+    // Detect master bedroom
+    const hasMasterBedroom = combinedText.includes('master bedroom') ||
+                             combinedText.includes('master bed') ||
+                             combinedText.includes('main bedroom');
+
+    // Detect similarly sized rooms
+    const similarSizedRooms = combinedText.includes('similarly sized') ||
+                              combinedText.includes('same size') ||
+                              combinedText.includes('equal size') ||
+                              combinedText.includes('comparable size') ||
+                              combinedText.includes('similar size');
+
+    return {
+      doubleRooms,
+      singleRooms,
+      ensuiteRooms,
+      hasMasterBedroom,
+      similarSizedRooms,
+    };
   }
 
   /**

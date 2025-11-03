@@ -123,6 +123,42 @@
   color: #d1d5db;
 }
 
+.room-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.room-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.room-badge.ensuite {
+  background: #fce7f3;
+  color: #9f1239;
+  border-color: #fbcfe8;
+}
+
+.room-badge.master {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.room-badge.similar {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
 .property-description {
   font-size: 14px;
   color: #4b5563;
