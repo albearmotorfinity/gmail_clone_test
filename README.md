@@ -14,10 +14,12 @@ When searching for properties on Rightmove:
 This webapp provides:
 - **Smart Scraping** - Fetches properties from Rightmove and stores them locally
 - **Weighted Filtering** - Each filter has an importance "weight" (0-10)
-- **Relevance Scoring** - Properties are scored by how well they match your weighted criteria
+- **Relevance Scoring** - Properties are scored by how well they match your weighted criteria (0-100% match)
 - **Flexible Matching** - See all properties ranked by relevance, not just perfect matches
 - **Student Detection** - Automatically identifies student properties
 - **Garden Detection** - Identifies properties with gardens/outdoor space
+- **Room Sizing Detection** - Detects double bedrooms, ensuite rooms, master bedrooms, and similarly-sized rooms
+- **Multiple Location Support** - Score properties based on proximity to multiple locations (e.g., university, work, city centre)
 
 ## Features
 
@@ -35,7 +37,7 @@ This webapp provides:
 - Match details breakdown
 - Statistics dashboard
 
-### Smart Scoring System
+### Smart Scoring System (0-100% Match)
 
 Each property gets a relevance score (0-100%) based on:
 - **Price** - Lower is better, partial credit for slightly over budget
@@ -43,9 +45,21 @@ Each property gets a relevance score (0-100%) based on:
 - **Bathrooms** - Bonus for extra bathrooms
 - **Garden** - Binary match
 - **Student Property** - Match your preference
-- **Location** - Closer is better (when implemented)
+- **Room Criteria** - Min double bedrooms, min ensuite rooms, similarly-sized rooms, master bedroom
+- **Multiple Locations** - Proximity to each location (e.g., university 2km away, work 5km away)
 
-The higher the weight, the more important that criterion is. Properties are sorted by total relevance score.
+**The Key Innovation**: Properties don't need to match all criteria perfectly. Instead:
+- Each criterion has a **weight** (how important it is to you)
+- Properties are **scored** based on how well they match each weighted criterion
+- You see **all** properties sorted by relevance score, not just perfect matches
+- This means you won't miss great properties that are "close enough"
+
+**Example**: You want 2 double bedrooms (weight 10), garden (weight 8), close to uni (weight 9), under £1200 (weight 7)
+- Property A: 2 doubles, garden, 1km from uni, £1250 → **92% match** (slightly over budget but perfect otherwise)
+- Property B: 1 double + 1 single, no garden, 0.5km from uni, £1100 → **68% match** (close to uni and cheap, but missing room criteria)
+- Property C: 3 doubles, garden, 5km from uni, £1150 → **85% match** (extra bedroom, but further from uni)
+
+All three show up in your results, ranked by relevance!
 
 ## Getting Started
 
@@ -84,22 +98,31 @@ Click **"Load Nottingham Properties"** to scrape properties from Rightmove's Not
 - Fetch listings from Rightmove
 - Parse property details (price, beds, baths, etc.)
 - Detect student properties and gardens
+- **Detect room sizing** (double bedrooms, ensuite rooms, master bedroom, similarly-sized rooms)
 - Store everything in the local database
 
 ### 2. Set Your Preferences
 
 Use the filter panel to set your preferences:
 
+**Basic Filters:**
 - **Max Price** - Set your budget and how important it is (weight)
 - **Min Bedrooms** - Minimum bedrooms needed
 - **Min Bathrooms** - Minimum bathrooms needed
 - **Garden** - How important is having a garden?
 - **Student Property** - Yes/No/Either, and how important is this?
 
+**Advanced Filters (via API):**
+- **Room Criteria** - Min double bedrooms, min ensuite rooms, similarly-sized rooms, master bedroom
+- **Multiple Locations** - Add multiple locations with individual distance thresholds and weights
+  - Example: University (2km, weight 10), City Centre (5km, weight 5), Work (3km, weight 8)
+
 Each filter has a **weight slider** (0-10):
 - 0 = Don't consider this criterion
 - 5 = Moderately important
 - 10 = Extremely important
+
+**Note:** The UI currently supports basic filters. For advanced room and location filtering, use the API directly (see API Endpoints section).
 
 ### 3. View Results
 
