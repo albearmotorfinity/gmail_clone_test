@@ -1,5 +1,5 @@
 {
-  "name": "email-saas",
+  "name": "rightmove-search-webapp",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -7,14 +7,15 @@
     "server"
   ],
   "scripts": {
-    "dev:client": "yarn workspace client dev",
-    "dev:server": "yarn workspace server dev",
-    "dev": "concurrently \"yarn dev:client\" \"yarn dev:server\"",
-    "build": "yarn workspace client build && yarn workspace server build",
-    "start": "yarn workspace server start"
+    "dev:client": "yarn workspace rightmove-search-client dev",
+    "dev:server": "yarn workspace rightmove-search-server dev",
+    "dev": "concurrently \"yarn dev:server\" \"yarn dev:client\"",
+    "build": "yarn workspace rightmove-search-server build && yarn workspace rightmove-search-client build",
+    "start": "yarn workspace rightmove-search-server start",
+    "install:all": "yarn install"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
     "typescript": "^5.1.6"
   }
-} 
+}
